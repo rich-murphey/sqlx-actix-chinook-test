@@ -1,0 +1,14 @@
+---
+base: 'http://localhost:8080'
+concurrency: 8
+iterations: 1000
+rampup: 2
+
+plan:
+  - name: /tracks
+    request:
+      url: /tracks
+      method: POST
+      body: '{"offset":0,"limit":1000}'
+      headers:
+        Content-Type: 'application/json;charset=utf-8'

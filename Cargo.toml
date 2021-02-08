@@ -1,0 +1,29 @@
+[package]
+authors = ["rich-murphey <rich@murphey.org>"]
+name = "sqlx-actix-test"
+version = "0.1.0"
+edition = "2018"
+publish = false
+
+[dependencies]
+anyhow = "1"
+dotenv = "0"
+env_logger = "0"
+futures = "0"
+log = "0"
+num_cpus = "1"
+serde = { version = "1", features = ["derive"] }
+serde_json = { version = "1", features = ["raw_value"] }
+sys-info = "0"
+thiserror = "1"
+
+sqlx = { version = "0.4.2", default-features = false, features = [ "runtime-actix-rustls", "macros", "sqlite" ] }
+# sqlx-actix-streaming = { git = "https://github.com/rich-murphey/sqlx-actix-streaming", features = ["macros", "logging"] }
+sqlx-actix-streaming = { path = "../sqlx-actix-streaming", features = ["macros", "logging"] }
+
+actix-web = { version = "3.3.2", features = ["secure-cookies"] }
+actix-web-codegen = "0.4.0"
+actix = "0.10"
+actix-codec = "0.3"
+actix-web-actors = "3"
+actix-files = "0.3"

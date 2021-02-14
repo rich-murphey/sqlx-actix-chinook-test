@@ -1,8 +1,5 @@
-This is a test case for an actix-web Json REST API server that streams
-sqlx query results.
-
-The purpose of this app is to explore streaming SQL query results via
-an HTTP Json REST method.
+This rust app explores issues regarding streaming SQL query results
+via an HTTP Json REST method.
 
 Sqlite shows Segmentation fault (in code that advances the cursor)
 under high load. To reproduce this use:

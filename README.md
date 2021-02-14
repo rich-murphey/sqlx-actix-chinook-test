@@ -15,7 +15,8 @@ The corresponding server output showing the issues is:
     [2021-02-08T05:16:07Z ERROR sqlx_actix_streaming::bytestream] dropped ByteStream in state: NonEmpty after 2 items
     [2021-02-08T05:16:07Z ERROR sqlx_actix_streaming::bytestream] dropped ByteStream in state: NonEmpty after 2 items
 
-This verifies that the full payload is being read.
+This verifies that the complete result is being returned for every API
+call.
 
     wrk -c24 -t24 -d8s -s tracks.lua http://127.0.0.1:8080
 

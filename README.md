@@ -1,11 +1,19 @@
 This is a test case for an actix-web Json REST API server that streams
 sqlx query results.
 
-The purpose of this app is to explore issues with streaming.
+The purpose of this app is to explore streaming SQL query results via
+an HTTP Json REST method.
 
-To reproduce this, run the app and the test concurrently:
+Sqlite shows Segmentation fault (in code that advances the cursor)
+under high load. To reproduce this use:
 
     cargo run --release &
+    drill --stats -q --benchmark tracks.yml
+
+Actix-web may drop a stream in the middle of a sequence of rows.  To
+reproduce issues this, run the app and the test concurrently:
+
+    cargo run --release --features sqlx-actix-streaming/logging &
     drill --stats -q --benchmark tracks.yml
 
 and the output showing the issues is:

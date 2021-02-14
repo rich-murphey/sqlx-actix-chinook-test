@@ -15,14 +15,14 @@ The corresponding server output showing the issues is:
     [2021-02-08T05:16:07Z ERROR sqlx_actix_streaming::bytestream] dropped ByteStream in state: NonEmpty after 2 items
     [2021-02-08T05:16:07Z ERROR sqlx_actix_streaming::bytestream] dropped ByteStream in state: NonEmpty after 2 items
 
+This prints the output of a single /tracks method call.
+
+    ht -j POST http://localhost:8080/tracks offset:=0 limit:=100
+
 This verifies that the complete result is being returned for every API
 call.
 
     wrk -c24 -t24 -d8s -s tracks.lua http://127.0.0.1:8080
-
-This prints the output of a single to the /tracks method.
-
-    ht -j POST http://localhost:8080/tracks offset:=0 limit:=100
 
 This prints a histogram of the API latency:
 

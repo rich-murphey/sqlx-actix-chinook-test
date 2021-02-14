@@ -16,6 +16,14 @@ To double check that the full payload is being read, use wrk, as follows:
 
     wrk -c24 -t24 -d8s -s tracks.lua http://127.0.0.1:8080
 
+To view the output of the test query:
+
+    ht -j POST http://localhost:8080/tracks offset:=0 limit:=100
+
+To look at a histogram of latency:
+
+    hey -n 2048 -c 8 -H "Content-Type: application/json" -m POST -d '{"offset":0,"limit":3000}' http://localhost:8080/tracks
+
 This should report something like:
 
     Running 8s test @ http://127.0.0.1:8080

@@ -15,3 +15,6 @@ ht:
 
 hey:
 	hey -n 2048 -c 8 -H "Content-Type: application/json" -m POST -d '{"offset":0,"limit":3000}' http://localhost:8080/tracks
+
+wrk:
+	wrk -c48 -t24 -d4s -s tracks.lua https://localhost:8080

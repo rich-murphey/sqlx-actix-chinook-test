@@ -1,5 +1,5 @@
-This rust app explores issues regarding streaming SQL query results
-via an HTTP Json REST method.
+This rust app explores issues involving streaming SQL query results
+via a JSON REST Api.
 
 Sqlite shows Segmentation fault (in code that advances the cursor)
 under high load. To reproduce this use:

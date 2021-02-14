@@ -1,6 +1,8 @@
 This rust app explores issues involving streaming SQL query results
 via a JSON REST API.
 
+# Dropping streams
+
 Actix-web may drop a stream in the middle of a sequence of rows.  To
 reproduce issues this, run the app and the test concurrently:
 
@@ -23,6 +25,8 @@ To view the output of the test query:
 To look at a histogram of latency:
 
     hey -n 2048 -c 8 -H "Content-Type: application/json" -m POST -d '{"offset":0,"limit":3000}' http://localhost:8080/tracks
+
+# Issues in sqlite
 
 Sqlite may exibit a Segmentation fault (in code that advances the cursor)
 under high load. To reproduce this use:

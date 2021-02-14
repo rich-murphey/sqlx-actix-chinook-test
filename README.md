@@ -1,12 +1,6 @@
 This rust app explores issues involving streaming SQL query results
 via a JSON REST API.
 
-Sqlite shows Segmentation fault (in code that advances the cursor)
-under high load. To reproduce this use:
-
-    cargo run --release &
-    drill --stats -q --benchmark tracks.yml
-
 Actix-web may drop a stream in the middle of a sequence of rows.  To
 reproduce issues this, run the app and the test concurrently:
 
@@ -36,3 +30,10 @@ while the server reports:
     [2021-02-09T21:41:05Z ERROR sqlx_actix_streaming::bytestream] dropped ByteStream in state: NonEmpty after 733 items
     [2021-02-09T21:41:21Z ERROR sqlx_actix_streaming::bytestream] dropped ByteStream in state: NonEmpty after 26 items
     [2021-02-09T21:41:21Z ERROR sqlx_actix_streaming::bytestream] dropped ByteStream in state: NonEmpty after 148 items
+
+Sqlite may exibit a Segmentation fault (in code that advances the cursor)
+under high load. To reproduce this use:
+
+    cargo run --release &
+    drill --stats -q --benchmark tracks.yml
+

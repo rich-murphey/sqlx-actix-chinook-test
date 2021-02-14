@@ -26,7 +26,6 @@ async fn main() -> anyhow::Result<()> {
         //         conn.execute("PRAGMA journal_mode = WAL;").await?;
         //         conn.execute("PRAGMA temp_store = 2;").await?;
         //         conn.execute("PRAGMA cache_size = -64000;").await?;
-        //         conn.execute("PRAGMA foreign_keys = ON;").await?;
         //         Ok(())
         //     })
         // })

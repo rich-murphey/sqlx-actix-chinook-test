@@ -3,8 +3,9 @@ via a JSON REST API.
 
 # Dropping streams
 
-Actix-web may drop a stream in the middle of a sequence of rows.  To
-reproduce issues this, run the app and the test concurrently:
+Actix-web may intermittanly drop a stream in the middle of the rows of
+a query response.  To reproduce issues this, run the app and the test
+concurrently:
 
     cargo run --release --features sqlx-actix-streaming/logging &
     drill --stats -q --benchmark tracks.yml

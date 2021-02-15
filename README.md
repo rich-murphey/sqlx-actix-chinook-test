@@ -22,7 +22,7 @@ This prints the output of a single /tracks method call.
 This verifies that the complete result is being returned for every API
 call.
 
-    wrk -c24 -t24 -d8s -s tracks.lua http://127.0.0.1:8080
+    wrk -c24 -t24 -d4s -s tracks.lua http://localhost:8080
 
 This prints a histogram of the API latency:
 

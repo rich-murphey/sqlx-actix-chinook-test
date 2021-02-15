@@ -7,6 +7,15 @@ use validator::Validate;
 
 use super::Db;
 
+macro_rules! try_validate [
+    ( $params:ident
+    ) => ({
+        if $params .validate().is_err() {
+            return HttpResponse::BadRequest().finish();
+        }
+    });
+];
+
 #[derive(Serialize, FromRow)]
 pub struct TrackRec {
     pub TrackId: i64,             // INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
@@ -20,6 +29,7 @@ pub struct TrackRec {
     pub UnitPrice: f32,           // REAL  NOT NULL,
 }
 
+// NB: https://github.com/Keats/validator/blob/master/README.md
 #[derive(Deserialize, Serialize, Validate)]
 pub struct TrackParams {
     pub offset: i64,
@@ -32,9 +42,7 @@ pub async fn tracks(
     web::Json(params): web::Json<TrackParams>,
     pool: web::Data<Pool<Db>>,
 ) -> HttpResponse {
-    if params.validate().is_err() {
-        return HttpResponse::BadRequest().finish();
-    }
+    try_validate!(params);
     json_response!(
         pool.as_ref().clone(),
         params,
@@ -65,9 +73,7 @@ pub async fn tracksref(
     web::Json(params): web::Json<TrackParams>,
     pool: web::Data<Pool<Db>>,
 ) -> HttpResponse {
-    if params.validate().is_err() {
-        return HttpResponse::BadRequest().finish();
-    }
+    try_validate!(params);
     HttpResponse::Ok()
         .content_type("application/json")
         .streaming(ByteStream::new(
@@ -93,9 +99,7 @@ pub async fn tracksobj(
     web::Json(params): web::Json<TrackParams>,
     pool: web::Data<Pool<Db>>,
 ) -> HttpResponse {
-    if params.validate().is_err() {
-        return HttpResponse::BadRequest().finish();
-    }
+    try_validate!(params);
     let mut prefix = r#"{"params":"#.to_string();
     prefix.push_str(&serde_json::to_string(&params).unwrap());
     prefix.push_str(r#","data":["#);

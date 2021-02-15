@@ -8,9 +8,8 @@ use validator::Validate;
 use super::Db;
 
 macro_rules! try_validate [
-    ( $params:ident
-    ) => ({
-        if $params .validate().is_err() {
+    ( $params:ident ) => ({
+        if ( $params ).validate().is_err() {
             return HttpResponse::BadRequest().finish();
         }
     });

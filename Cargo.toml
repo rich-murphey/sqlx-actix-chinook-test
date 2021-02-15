@@ -28,3 +28,4 @@ actix-web = { version = "3", features = ["secure-cookies"] }
 # actix-files = "0.3"
 
 funty = "=1.1.0"
+validator = { version = "0", features = ["derive"] }

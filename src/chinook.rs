@@ -3,6 +3,7 @@ use actix_web::*;
 use serde::*;
 use sqlx::{prelude::*, Pool};
 use sqlx_actix_streaming::*;
+use validator::Validate;
 
 use super::Db;
 
@@ -19,9 +20,10 @@ pub struct TrackRec {
     pub UnitPrice: f32,           // REAL  NOT NULL,
 }
 
-#[derive(Deserialize, Serialize)]
+#[derive(Deserialize, Serialize, Validate)]
 pub struct TrackParams {
     pub offset: i64,
+    #[validate(range(min = 1))]
     pub limit: i64,
 }
 
@@ -30,6 +32,9 @@ pub async fn tracks(
     web::Json(params): web::Json<TrackParams>,
     pool: web::Data<Pool<Db>>,
 ) -> HttpResponse {
+    if params.validate().is_err() {
+        return HttpResponse::BadRequest().finish();
+    }
     json_response!(
         pool.as_ref().clone(),
         params,
@@ -60,6 +65,9 @@ pub async fn tracksref(
     web::Json(params): web::Json<TrackParams>,
     pool: web::Data<Pool<Db>>,
 ) -> HttpResponse {
+    if params.validate().is_err() {
+        return HttpResponse::BadRequest().finish();
+    }
     HttpResponse::Ok()
         .content_type("application/json")
         .streaming(ByteStream::new(
@@ -85,6 +93,9 @@ pub async fn tracksobj(
     web::Json(params): web::Json<TrackParams>,
     pool: web::Data<Pool<Db>>,
 ) -> HttpResponse {
+    if params.validate().is_err() {
+        return HttpResponse::BadRequest().finish();
+    }
     let mut prefix = r#"{"params":"#.to_string();
     prefix.push_str(&serde_json::to_string(&params).unwrap());
     prefix.push_str(r#","data":["#);

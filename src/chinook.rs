@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 use actix_web::*;
 use serde::*;
 use sqlx::{prelude::*, Pool};
@@ -6,31 +7,16 @@ use sqlx_actix_streaming::*;
 use super::Db;
 
 #[derive(Serialize, FromRow)]
-#[sqlx(rename_all = "PascalCase")]
 pub struct TrackRec {
-    pub track_id: i64,            // INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    pub name: String,             // NVARCHAR(200)  NOT NULL,
-    pub album_id: Option<i64>,    // INTEGER,
-    pub media_type_id: i64,       // INTEGER  NOT NULL,
-    pub genre_id: Option<i64>,    // INTEGER,
-    pub composer: Option<String>, // NVARCHAR(220),
-    pub milliseconds: i64,        // INTEGER  NOT NULL,
-    pub bytes: Option<i64>,       // INTEGER,
-    pub unit_price: f32,          // REAL  NOT NULL,
-}
-
-#[derive(Serialize, FromRow)]
-#[sqlx(rename_all = "PascalCase")]
-pub struct TrackRecRef<'a> {
-    pub track_id: i64,             // INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    pub name: Option<&'a str>,     // NVARCHAR(200)  NOT NULL,
-    pub album_id: Option<i64>,     // INTEGER,
-    pub media_type_id: i64,        // INTEGER  NOT NULL,
-    pub genre_id: Option<i64>,     // INTEGER,
-    pub composer: Option<&'a str>, // NVARCHAR(220),
-    pub milliseconds: i64,         // INTEGER  NOT NULL,
-    pub bytes: Option<i64>,        // INTEGER,
-    pub unit_price: f32,           // NUMERIC(10,2)  NOT NULL,
+    pub TrackId: i64,             // INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    pub Name: String,             // NVARCHAR(200)  NOT NULL,
+    pub AlbumId: Option<i64>,     // INTEGER,
+    pub MediaTypeId: i64,         // INTEGER  NOT NULL,
+    pub GenreId: Option<i64>,     // INTEGER,
+    pub Composer: Option<String>, // NVARCHAR(220),
+    pub Milliseconds: i64,        // INTEGER  NOT NULL,
+    pub Bytes: Option<i64>,       // INTEGER,
+    pub UnitPrice: f32,           // REAL  NOT NULL,
 }
 
 #[derive(Deserialize, Serialize)]
@@ -44,35 +30,29 @@ pub async fn tracks(
     web::Json(params): web::Json<TrackParams>,
     pool: web::Data<Pool<Db>>,
 ) -> HttpResponse {
-    HttpResponse::Ok()
-        .content_type("application/json")
-        .streaming(ByteStream::new(
-            pool.as_ref(),
-            move |pool| {
-                sqlx::query_as::<_, TrackRec>("SELECT * FROM tracks LIMIT ?1 OFFSET ?2 ")
-                    .bind(params.limit)
-                    .bind(params.offset)
-                    .fetch(pool)
-            },
-            |buf: &mut BytesWriter, record: &TrackRec| {
-                serde_json::to_writer(buf, record).map_err(error::ErrorInternalServerError)
-            },
-        ))
+    json_response!(
+        pool.as_ref().clone(),
+        params,
+        sqlx::query_as!(
+            TrackRec,
+            "SELECT * FROM tracks LIMIT ?1 OFFSET ?2 ",
+            params.limit,
+            params.offset
+        )
+    )
 }
 
-// this is the same as /tracks, except using a macro.
-#[post("/tracks2")]
-pub async fn tracks2(
-    web::Json(params): web::Json<TrackParams>,
-    pool: web::Data<Pool<Db>>,
-) -> HttpResponse {
-    json_response!(
-        TrackRec,
-        pool.as_ref(),
-        "SELECT * FROM tracks LIMIT ?1 OFFSET ?2 ",
-        params.limit,
-        params.offset
-    )
+#[derive(Serialize, FromRow)]
+pub struct TrackRecRef<'a> {
+    pub TrackId: i64,              // INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    pub Name: &'a str,             // NVARCHAR(200)  NOT NULL,
+    pub AlbumId: Option<i64>,      // INTEGER,
+    pub MediaTypeId: i64,          // INTEGER  NOT NULL,
+    pub GenreId: Option<i64>,      // INTEGER,
+    pub Composer: Option<&'a str>, // NVARCHAR(220),
+    pub Milliseconds: i64,         // INTEGER  NOT NULL,
+    pub Bytes: Option<i64>,        // INTEGER,
+    pub UnitPrice: f32,            // REAL  NOT NULL,
 }
 
 #[post("/tracksref")]
@@ -130,7 +110,6 @@ pub async fn tracksobj(
 
 pub fn service(cfg: &mut web::ServiceConfig) {
     cfg.service(tracks);
-    cfg.service(tracks2);
     cfg.service(tracksref);
     cfg.service(tracksobj);
 }

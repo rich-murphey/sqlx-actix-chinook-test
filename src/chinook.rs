@@ -54,76 +54,46 @@ pub async fn tracks(
     )
 }
 
-#[derive(Serialize, FromRow)]
-pub struct TrackRecRef<'a> {
-    pub TrackId: i64,              // INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    pub Name: &'a str,             // NVARCHAR(200)  NOT NULL,
-    pub AlbumId: Option<i64>,      // INTEGER,
-    pub MediaTypeId: i64,          // INTEGER  NOT NULL,
-    pub GenreId: Option<i64>,      // INTEGER,
-    pub Composer: Option<&'a str>, // NVARCHAR(220),
-    pub Milliseconds: i64,         // INTEGER  NOT NULL,
-    pub Bytes: Option<i64>,        // INTEGER,
-    pub UnitPrice: f32,            // REAL  NOT NULL,
-}
+const UNKNOWN: &str = "(unknown)";
 
-#[post("/tracksref")]
-pub async fn tracksref(
+#[post("/track_table")]
+pub async fn track_table(
     web::Json(params): web::Json<TrackParams>,
     pool: web::Data<Pool<Db>>,
 ) -> HttpResponse {
-    bail_if_invalid!(params);
-    HttpResponse::Ok()
-        .content_type("application/json")
-        .streaming(ByteStream::new(
-            pool.as_ref(),
-            |pool| {
-                sqlx::query("SELECT * FROM tracks LIMIT ?1 OFFSET ?2 ")
-                    .bind(params.limit)
-                    .bind(params.offset)
-                    .fetch(pool)
-            },
-            |buf: &mut BytesWriter, row| {
-                serde_json::to_writer(
-                    buf,
-                    &TrackRecRef::from_row(row).map_err(error::ErrorInternalServerError)?,
-                )
-                .map_err(error::ErrorInternalServerError)
-            },
-        ))
-}
-
-#[post("/tracksobj")]
-pub async fn tracksobj(
-    web::Json(params): web::Json<TrackParams>,
-    pool: web::Data<Pool<Db>>,
-) -> HttpResponse {
-    bail_if_invalid!(params);
-    let mut prefix = r#"{"params":"#.to_string();
-    prefix.push_str(&serde_json::to_string(&params).unwrap());
-    prefix.push_str(r#","data":["#);
     HttpResponse::Ok()
         .content_type("application/json")
         .streaming(
-            ByteStream::new(
-                pool.as_ref(),
-                move |pool| {
-                    sqlx::query_as::<_, TrackRec>("SELECT * FROM tracks LIMIT ?1 OFFSET ?2 ")
-                        .bind(params.limit)
-                        .bind(params.offset)
-                        .fetch(pool)
+            ByteStreamWithParams::new(
+                pool.as_ref().clone(),
+                params,
+                move |pool, params| {
+                    sqlx::query_as!(
+                        TrackRec,
+                        "SELECT * FROM tracks LIMIT $1 OFFSET $2 ",
+                        params.limit,
+                        params.offset
+                    )
+                    .fetch(pool)
                 },
                 |buf: &mut BytesWriter, rec: &TrackRec| {
-                    serde_json::to_writer(buf, rec).map_err(error::ErrorInternalServerError)
+                    write!(
+                        &mut *buf,
+                        r#"[{}, {}, "{}", "{}"]"#,
+                        rec.TrackId,
+                        &rec.Name,
+                        rec.Composer.as_ref().map_or(UNKNOWN, |s| s.as_str()),
+                        rec.UnitPrice,
+                    )
+                    .map_err(error::ErrorInternalServerError)
                 },
             )
-            .prefix(prefix)
+            .prefix(r#"{"cols":["id", "name", "composer", "unit_price"],"rows":["#)
             .suffix(r#"]}"#),
         )
 }
 
 pub fn service(cfg: &mut web::ServiceConfig) {
     cfg.service(tracks);
-    cfg.service(tracksref);
-    cfg.service(tracksobj);
+    cfg.service(track_table);
 }

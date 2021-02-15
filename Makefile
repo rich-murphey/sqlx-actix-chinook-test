@@ -10,8 +10,11 @@ run:
 dump:
 	sqlite3 data.db <<<.dump
 
-ht:
-	ht -j POST http://localhost:8080/tracks offset:=0 limit:=100
+tracks:
+	ht -j POST http://localhost:8080/tracks offset:=0 limit:=3
+
+track_table:
+	ht -j POST http://localhost:8080/track_table offset:=0 limit:=3
 
 hey:
 	hey -n 2048 -c 8 -H "Content-Type: application/json" -m POST -d '{"offset":0,"limit":3000}' http://localhost:8080/tracks

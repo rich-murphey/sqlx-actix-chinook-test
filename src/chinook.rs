@@ -68,15 +68,14 @@ pub async fn track_table(
                 pool.as_ref().clone(),
                 params,
                 move |pool, params| {
-                    sqlx::query_as!(
-                        TrackRec,
-                        "SELECT * FROM tracks LIMIT $1 OFFSET $2 ",
+                    sqlx::query!(
+                        "SELECT TrackId, Name, Composer, UnitPrice FROM tracks LIMIT $1 OFFSET $2 ",
                         params.limit,
                         params.offset
                     )
                     .fetch(pool)
                 },
-                |buf: &mut BytesWriter, rec: &TrackRec| {
+                |buf: &mut BytesWriter, rec| {
                     write!(
                         &mut *buf,
                         r#"[{}, {}, "{}", "{}"]"#,
@@ -88,7 +87,7 @@ pub async fn track_table(
                     .map_err(error::ErrorInternalServerError)
                 },
             )
-            .prefix(r#"{"cols":["id", "name", "composer", "unit_price"],"rows":["#)
+            .prefix(r#"{"cols":["Track Id", "Name", "Composer", "Unit Price"],"rows":["#)
             .suffix(r#"]}"#),
         )
 }

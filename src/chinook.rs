@@ -47,7 +47,7 @@ pub async fn tracks(
         params,
         sqlx::query_as!(
             TrackRec,
-            "SELECT * FROM tracks LIMIT ?1 OFFSET ?2 ",
+            "SELECT * FROM tracks LIMIT ?1 OFFSET ?2 ;",
             params.limit,
             params.offset
         )
@@ -64,15 +64,15 @@ pub async fn track_table(
     HttpResponse::Ok()
         .content_type("application/json")
         .streaming(
-            ByteStreamWithParams::new(
+            ByteStream::bind(
                 pool.as_ref().clone(),
                 params,
                 move |pool, params| {
                     sqlx::query!(
-                        "SELECT TrackId, Name, Composer, UnitPrice FROM tracks LIMIT $1 OFFSET $2 ",
-                        params.limit,
-                        params.offset
-                    )
+                    "SELECT TrackId, Name, Composer, UnitPrice FROM tracks LIMIT $1 OFFSET $2 ;",
+                    params.limit,
+                    params.offset
+                )
                     .fetch(pool)
                 },
                 |buf: &mut BytesWriter, rec| {

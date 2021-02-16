@@ -1,7 +1,8 @@
 
 default:
 	cargo run --release
-test:
+
+drill:
 	drill --stats -q --benchmark tracks.yml
 
 run:

@@ -32,12 +32,13 @@ async fn main() -> anyhow::Result<()> {
         // .max_connections(max_conn as u32)
         .connect_with(env::var("DATABASE_URL").context("DATABASE_URL")?.parse()?)
         .await?;
+    let pool = web::Data::new(pool); // avoid double Arc.
     let addr = env::var("SOCKETADDR").unwrap_or_else(|_| "127.0.0.1:8080".to_string());
     info!("this web server is listening at http://{}", &addr);
     HttpServer::new(move || {
         actix_web::App::new()
             .wrap(middleware::Logger::default())
-            .app_data(web::Data::new(pool.clone()))
+            .app_data(pool.clone())
             .configure(chinook::service)
             .default_service(web::route().to(HttpResponse::NotFound))
     })

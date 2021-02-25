@@ -64,17 +64,18 @@ pub async fn track_table(
     HttpResponse::Ok()
         .content_type("application/json")
         .streaming(
-            ByteStream::bind(
-                pool.as_ref().clone(),
-                params,
-                move |pool, params| {
-                    sqlx::query!(
-                    "SELECT TrackId, Name, Composer, UnitPrice FROM tracks LIMIT $1 OFFSET $2 ;",
-                    params.limit,
-                    params.offset
-                )
-                    .fetch(pool)
-                },
+            ByteStream::new(
+                RowStream::build(
+                    (pool.as_ref().clone(), params),
+                    move |(pool, params)| {
+                        sqlx::query!(
+                            "SELECT TrackId, Name, Composer, UnitPrice FROM tracks LIMIT $1 OFFSET $2 ;",
+                            params.limit,
+                            params.offset
+                        )
+                            .fetch(pool)
+                    }
+                ),
                 |buf: &mut BytesWriter, rec| {
                     write!(
                         &mut *buf,

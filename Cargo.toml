@@ -18,7 +18,8 @@ sys-info = "0"
 thiserror = "1"
 
 sqlx = { version = "0.4", default-features = false, features = [ "runtime-actix-rustls", "macros", "sqlite" ] }
-sqlx-actix-streaming = { git = "https://github.com/rich-murphey/sqlx-actix-streaming", features = ["macros", "runtime-actix-rustls", "sqlite" ] }
+# sqlx-actix-streaming = { git = "https://github.com/rich-murphey/sqlx-actix-streaming", features = ["macros", "runtime-actix-rustls", "sqlite" ] }
+sqlx-actix-streaming = { path = "../sqlx-actix-streaming", features = ["macros", "runtime-actix-rustls", "sqlite" ] }
 
 actix-web = { version = "3", features = ["secure-cookies"] }
 # actix-web-codegen = "0.4.0"

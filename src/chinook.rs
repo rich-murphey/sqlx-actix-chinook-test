@@ -53,6 +53,18 @@ pub async fn tracks(
         )
     )
 }
+
+#[get("/tracks4/{limit}/{offset}")]
+pub async fn tracks4(path: web::Path<(i64, i64)>, pool: web::Data<Pool<Db>>) -> HttpResponse {
+    let (limit, offset) = path.into_inner();
+    sqlx_actix_streaming::query_json!(
+        "select * from tracks limit ?1 offset ?2",
+        pool.as_ref().clone(),
+        limit,
+        offset
+    )
+}
+
 #[post("/tracks2")]
 pub async fn tracks2(
     web::Json(params): web::Json<TrackParams>,
@@ -70,24 +82,27 @@ pub async fn tracks2(
     ))
 }
 
-// async fn some_route(web::Path((first_name, last_name)): web::Path<(String, String)>) -> String {
-//     format!("Hello, {} {}", first_name, last_name)
-// }
-
-// #[post("/tracks/{limit}/{offset}")]
-// pub async fn tracks3(
-//     web::Path((limit, offset)): web::Path((i64, i64)),
-//     pool: web::Data<Pool<Db>>,
-// ) -> HttpResponse {
-//     sqlx_actix_streaming::json_query!(
-//         pool.as_ref().clone(),
-//         sqlx::query!(
-//              "select * from tracks limit ?1 offset ?2",
-//             limit,
-//             offset
-//         )
-//     )
-// }
+#[get("/tracks3/{limit}/{offset}")]
+pub async fn tracks3(path: web::Path<(i64, i64)>, pool: web::Data<Pool<Db>>) -> HttpResponse {
+    HttpResponse::Ok()
+        .content_type("application/json")
+        .streaming(ByteStream::new(
+            RowStream::build(
+                (pool.as_ref().clone(), path.into_inner()),
+                move |(pool, (limit, offset))| {
+                    sqlx::query!(
+                        "select TrackId, Name, Composer, UnitPrice from tracks limit $1 offset $2",
+                        *limit,
+                        *offset,
+                    )
+                    .fetch(pool)
+                },
+            ),
+            |buf: &mut BytesWriter, rec| {
+                serde_json::to_writer(buf, rec).map_err(actix_web::error::ErrorInternalServerError)
+            },
+        ))
+}
 
 const UNKNOWN: &str = "(unknown)";
 
@@ -128,6 +143,7 @@ pub async fn track_table(
 pub fn service(cfg: &mut web::ServiceConfig) {
     cfg.service(tracks);
     cfg.service(tracks2);
-    // cfg.service(tracks3);
+    cfg.service(tracks3);
+    cfg.service(tracks4);
     cfg.service(track_table);
 }

@@ -47,11 +47,28 @@ pub async fn tracks(
         params,
         sqlx::query_as!(
             TrackRec,
-            "SELECT * FROM tracks LIMIT ?1 OFFSET ?2 ;",
+            "select * from tracks limit ?1 offset ?2 ;",
             params.limit,
             params.offset
         )
     )
+}
+
+#[post("/tracks2")]
+pub async fn tracks2(
+    web::Json(params): web::Json<TrackParams>,
+    pool: web::Data<Pool<Db>>,
+) -> Result<HttpResponse> {
+    Ok(HttpResponse::Ok().json(
+        &sqlx::query!(
+            "select * from tracks limit ?1 offset ?2 ;",
+            params.limit,
+            params.offset
+        )
+        .fetch_all(pool.as_ref())
+        .await
+        .map_err(error::ErrorInternalServerError)?,
+    ))
 }
 
 const UNKNOWN: &str = "(unknown)";
@@ -65,17 +82,14 @@ pub async fn track_table(
         .content_type("application/json")
         .streaming(
             ByteStream::new(
-                RowStream::build(
-                    (pool.as_ref().clone(), params),
-                    move |(pool, params)| {
-                        sqlx::query!(
-                            "SELECT TrackId, Name, Composer, UnitPrice FROM tracks LIMIT $1 OFFSET $2 ;",
-                            params.limit,
-                            params.offset
-                        )
-                            .fetch(pool)
-                    }
-                ),
+                RowStream::build((pool.as_ref().clone(), params), move |(pool, params)| {
+                    sqlx::query!(
+                    "select TrackId, Name, Composer, UnitPrice from tracks limit $1 offset $2 ;",
+                    params.limit,
+                    params.offset
+                )
+                    .fetch(pool)
+                }),
                 |buf: &mut BytesWriter, rec| {
                     write!(
                         &mut *buf,
@@ -95,5 +109,6 @@ pub async fn track_table(
 
 pub fn service(cfg: &mut web::ServiceConfig) {
     cfg.service(tracks);
+    cfg.service(tracks2);
     cfg.service(track_table);
 }

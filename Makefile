@@ -12,6 +12,7 @@ dump:
 	sqlite3 data.db <<<.dump
 
 tracks:
+	ht -j GET  http://localhost:8080/tracks4/3/0
 	ht -j POST http://localhost:8080/tracks offset:=0 limit:=3
 
 track_table:

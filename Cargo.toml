@@ -20,5 +20,4 @@ serde = { version = "1.0.124", features = ["derive"] }
 serde_json = { version = "1.0.64", features = ["raw_value"] }
 sqlx = { version = "0.5.1", default-features = false, features = [ "runtime-actix-rustls", "macros", "sqlite" ] }
 sqlx-actix-streaming = { git = "https://github.com/rich-murphey/sqlx-actix-streaming", features = ["macros", "runtime-actix-rustls", "sqlite" ] }
-sys-info = "0.8.0"
 validator = { version = "0.12.0", features = ["derive"] }

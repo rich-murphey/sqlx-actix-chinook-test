@@ -11,25 +11,25 @@ type Db = sqlx::sqlite::Sqlite;
 async fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
     env_logger::init();
-    // let max_conn: usize = match std::env::var("CONN") {
-    //     Ok(s) => s.parse().unwrap_or_else(|_| {
-    //         error!("cannot parse env var CONN as integer: {}", s);
-    //         3 * num_cpus::get()
-    //     }),
-    //     _ => 3 * num_cpus::get(),
-    // };
+    let max_conn: usize = match std::env::var("CONN") {
+        Ok(s) => s.parse().unwrap_or_else(|_| {
+            error!("cannot parse env var CONN as integer: {}", s);
+            2 * num_cpus::get()
+        }),
+        _ => 2 * num_cpus::get(),
+    };
     let pool = sqlx::sqlite::SqlitePoolOptions::new()
-        // .after_connect(move |conn| {
-        //     Box::pin(async move {
-        //         use sqlx::Executor;
-        //         conn.execute("PRAGMA synchronous = NORMAL;").await?;
-        //         conn.execute("PRAGMA journal_mode = WAL;").await?;
-        //         conn.execute("PRAGMA temp_store = 2;").await?;
-        //         conn.execute("PRAGMA cache_size = -64000;").await?;
-        //         Ok(())
-        //     })
-        // })
-        // .max_connections(max_conn as u32)
+        .after_connect(move |conn| {
+            Box::pin(async move {
+                use sqlx::Executor;
+                conn.execute("PRAGMA synchronous = NORMAL;").await?;
+                conn.execute("PRAGMA journal_mode = WAL;").await?;
+                conn.execute("PRAGMA temp_store = 2;").await?;
+                conn.execute("PRAGMA cache_size = -64000;").await?;
+                Ok(())
+            })
+        })
+        .max_connections(max_conn as u32)
         .connect_with(env::var("DATABASE_URL").context("DATABASE_URL")?.parse()?)
         .await?;
     let pool = web::Data::new(pool); // avoid double Arc.

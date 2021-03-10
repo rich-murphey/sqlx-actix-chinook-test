@@ -54,8 +54,11 @@ pub async fn tracks(
     )
 }
 
+#[cfg(feature = "serialize")]
 #[get("/tracks4/{limit}/{offset}")]
 pub async fn tracks4(path: web::Path<(i64, i64)>, pool: web::Data<Pool<Db>>) -> HttpResponse {
+    // Note: change the fn argument to use a desctructor as soon as
+    // actix releases the fix for it.
     let (limit, offset) = path.into_inner();
     sqlx_actix_streaming::query_json!(
         "select * from tracks limit ?1 offset ?2",
@@ -65,6 +68,7 @@ pub async fn tracks4(path: web::Path<(i64, i64)>, pool: web::Data<Pool<Db>>) -> 
     )
 }
 
+#[cfg(feature = "serialize")]
 #[post("/tracks2")]
 pub async fn tracks2(
     web::Json(params): web::Json<TrackParams>,
@@ -82,12 +86,13 @@ pub async fn tracks2(
     ))
 }
 
+#[cfg(feature = "serialize")]
 #[get("/tracks3/{limit}/{offset}")]
 pub async fn tracks3(path: web::Path<(i64, i64)>, pool: web::Data<Pool<Db>>) -> HttpResponse {
     HttpResponse::Ok()
         .content_type("application/json")
         .streaming(ByteStream::new(
-            RowStream::build(
+            SelfRefStream::build(
                 (pool.as_ref().clone(), path.into_inner()),
                 move |(pool, (limit, offset))| {
                     sqlx::query!(
@@ -115,7 +120,7 @@ pub async fn track_table(
         .content_type("application/json")
         .streaming(
             ByteStream::new(
-                RowStream::build((pool.as_ref().clone(), params), move |(pool, params)| {
+                SelfRefStream::build((pool.as_ref().clone(), params), move |(pool, params)| {
                     sqlx::query!(
                         "select TrackId, Name, Composer, UnitPrice from tracks limit $1 offset $2",
                         params.limit,
@@ -142,8 +147,11 @@ pub async fn track_table(
 
 pub fn service(cfg: &mut web::ServiceConfig) {
     cfg.service(tracks);
+    #[cfg(feature = "serialize")]
     cfg.service(tracks2);
+    #[cfg(feature = "serialize")]
     cfg.service(tracks3);
+    #[cfg(feature = "serialize")]
     cfg.service(tracks4);
     cfg.service(track_table);
 }

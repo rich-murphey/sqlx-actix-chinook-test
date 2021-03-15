@@ -18,22 +18,22 @@ macro_rules! bail_if_invalid [
 
 #[derive(Serialize, FromRow)]
 pub struct TrackRec {
-    pub TrackId: i64,             // INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    pub TrackId: i32,             // INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
     pub Name: String,             // NVARCHAR(200)  NOT NULL,
-    pub AlbumId: Option<i64>,     // INTEGER,
-    pub MediaTypeId: i64,         // INTEGER  NOT NULL,
-    pub GenreId: Option<i64>,     // INTEGER,
+    pub AlbumId: Option<i32>,     // INTEGER,
+    pub MediaTypeId: i32,         // INTEGER  NOT NULL,
+    pub GenreId: Option<i32>,     // INTEGER,
     pub Composer: Option<String>, // NVARCHAR(220),
-    pub Milliseconds: i64,        // INTEGER  NOT NULL,
-    pub Bytes: Option<i64>,       // INTEGER,
-    pub UnitPrice: f32,           // REAL  NOT NULL,
+    pub Milliseconds: i32,        // INTEGER  NOT NULL,
+    pub Bytes: Option<i32>,       // INTEGER,
+    pub UnitPrice: sqlx::types::BigDecimal, // REAL  NOT NULL,
 }
 
 #[derive(Deserialize, Serialize, Validate)]
 pub struct TrackParams {
-    pub offset: i64,
+    pub offset: i32,
     #[validate(range(min = 1))]
-    pub limit: i64,
+    pub limit: i32,
 }
 
 #[post("/tracks")]
@@ -47,7 +47,7 @@ pub async fn tracks(
         params,
         sqlx::query_as!(
             TrackRec,
-            "select * from tracks limit ?1 offset ?2",
+            "select * from Track limit ? offset ?",
             params.limit,
             params.offset
         )
@@ -62,7 +62,7 @@ pub async fn tracks4(path: web::Path<(i64, i64)>, pool: web::Data<Pool<Db>>) -> 
     sqlx_actix_streaming::json_response_alt!(
         TrackRec,
         pool.as_ref().clone(),
-        "select * from tracks limit ?1 offset ?2",
+        "select * from Track limit ? offset ?",
         limit,
         offset
     )
@@ -76,7 +76,7 @@ pub async fn tracks2(
     Ok(HttpResponse::Ok().json(
         &sqlx::query_as!(
             TrackRec,
-            "select * from tracks limit ?1 offset ?2",
+            "select * from Track limit ? offset ?",
             params.limit,
             params.offset
         )
@@ -96,7 +96,7 @@ pub async fn tracks3(path: web::Path<(i64, i64)>, pool: web::Data<Pool<Db>>) -> 
                 move |(pool, (limit, offset))| {
                     sqlx::query_as!(
                         TrackRec,
-                        "select * from tracks limit $1 offset $2",
+                        "select * from Track limit ? offset ?",
                         *limit,
                         *offset,
                     )
@@ -122,7 +122,7 @@ pub async fn track_table(
             ByteStream::new(
                 SelfRefStream::build((pool.as_ref().clone(), params), move |(pool, params)| {
                     sqlx::query!(
-                        "select TrackId, Name, Composer, UnitPrice from tracks limit $1 offset $2",
+                        "select TrackId, Name, Composer, UnitPrice from Track limit ? offset ?",
                         params.limit,
                         params.offset
                     )

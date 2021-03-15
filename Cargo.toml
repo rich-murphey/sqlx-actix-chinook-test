@@ -11,6 +11,7 @@ default = []
 [dependencies]
 actix-web = { version = "4.0.0-beta.4", features = ["secure-cookies"] }
 anyhow = "1.0.38"
+bigdecimal = { version = "0.2.0", features = ["serde"] }
 dotenv = "0.15.0"
 env_logger = "0.8.3"
 futures = "0.3.13"
@@ -18,6 +19,6 @@ log = "0.4.14"
 num_cpus = "1.13.0"
 serde = { version = "1.0.124", features = ["derive"] }
 serde_json = { version = "1.0.64", features = ["raw_value"] }
-sqlx = { version = "0.5.1", default-features = false, features = [ "runtime-actix-rustls", "macros", "sqlite" ] }
-sqlx-actix-streaming = { git = "https://github.com/rich-murphey/sqlx-actix-streaming", features = ["macros", "runtime-actix-rustls", "sqlite" ] }
+sqlx = { version = "0.5.1", default-features = false, features = [ "runtime-actix-rustls", "macros", "mysql", "bigdecimal" ] }
+sqlx-actix-streaming = { git = "https://github.com/rich-murphey/sqlx-actix-streaming", features = ["macros", "runtime-actix-rustls", "mysql" ] }
 validator = { version = "0.12.0", features = ["derive"] }

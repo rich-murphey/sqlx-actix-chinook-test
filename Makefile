@@ -23,3 +23,8 @@ hey:
 
 wrk:
 	wrk -c24 -t24 -d4s -s tracks.lua http://localhost:8080
+
+db:
+	sqlx db create
+	curl https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_MySql.sql |mysql -h hv.lan -u root -p$(shell sed -ne '/^DATABASE_URL/s/.*:\(.*\)@.*/\1/p' <.env)
+	curl https://raw.githubusercontent.com/lerocha/chinook-database/master/ChinookDatabase/DataSources/Chinook_MySql_AutoIncrementPKs.sql |mysql -h hv.lan -u root -p$(shell sed -ne '/^DATABASE_URL/s/.*:\(.*\)@.*/\1/p' <.env)

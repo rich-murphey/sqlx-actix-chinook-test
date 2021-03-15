@@ -5,7 +5,7 @@ use std::env;
 
 mod chinook;
 
-type Db = sqlx::sqlite::Sqlite;
+type Db = sqlx::mysql::MySql;
 
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
@@ -18,17 +18,7 @@ async fn main() -> anyhow::Result<()> {
         }),
         _ => 2 * num_cpus::get(),
     };
-    let pool = sqlx::sqlite::SqlitePoolOptions::new()
-        .after_connect(move |conn| {
-            Box::pin(async move {
-                use sqlx::Executor;
-                conn.execute("PRAGMA synchronous = NORMAL;").await?;
-                conn.execute("PRAGMA journal_mode = WAL;").await?;
-                conn.execute("PRAGMA temp_store = 2;").await?;
-                conn.execute("PRAGMA cache_size = -64000;").await?;
-                Ok(())
-            })
-        })
+    let pool = sqlx::mysql::MySqlPoolOptions::new()
         .max_connections(max_conn as u32)
         .connect_with(env::var("DATABASE_URL").context("DATABASE_URL")?.parse()?)
         .await?;

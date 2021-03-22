@@ -10,7 +10,7 @@ type Db = sqlx::sqlite::Sqlite;
 #[actix_web::main]
 async fn main() -> anyhow::Result<()> {
     dotenv::dotenv().ok();
-    env_logger::init();
+    env_logger::try_init()?;
     let max_conn: usize = match std::env::var("CONN") {
         Ok(s) => s.parse().unwrap_or_else(|_| {
             error!("cannot parse env var CONN as integer: {}", s);
